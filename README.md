@@ -47,7 +47,7 @@ Add it in your root build.gradle at the end of repositories:
 
 ```
     dependencies {
-            compile 'com.github.hss01248:HiddenCamera:lastest release'
+            compile 'com.github.hss01248:HiddenCamera:[lastest release](https://github.com/hss01248/HiddenCamera/releases)'
     }
 ```
 
