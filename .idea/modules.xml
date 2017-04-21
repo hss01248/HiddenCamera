@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/HiddenCamera.iml" filepath="$PROJECT_DIR$/HiddenCamera.iml" />
       <module fileurl="file://$PROJECT_DIR$/Hide.iml" filepath="$PROJECT_DIR$/Hide.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/hiddencamera/hiddencamera.iml" filepath="$PROJECT_DIR$/hiddencamera/hiddencamera.iml" />

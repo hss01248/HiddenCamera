@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 
 import com.hss01248.hiddencamera.CameraActivity;
@@ -29,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void getPermission() {
         new RxPermissions(this)
-                .request(Manifest.permission.CAMERA)
+                .request(Manifest.permission.CAMERA,Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .subscribe(new Consumer<Boolean>() {
                     @Override
                     public void accept(Boolean aBoolean) throws Exception {
@@ -39,5 +40,15 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(resultCode == CameraActivity.GET_SUCCESS && data !=null ){
+            String path = data.getStringExtra(CameraActivity.PATH);
+            Log.e("path","success path:"+path);
+
+        }
     }
 }

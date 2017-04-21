@@ -2,6 +2,7 @@ package com.hss01248.hiddencamera;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,7 +15,6 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,6 +34,9 @@ public class CameraActivity extends Activity {
     private Camera myCamera;
     private int width;
     private int height;
+
+    public static int GET_SUCCESS = 6;
+    public static String PATH = "path";
 
 
 
@@ -217,7 +220,7 @@ Camera.Parameters para = myCamera.getParameters();
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
             //完成拍照后关闭Activity
-            CameraActivity.this.finish();
+
             Bitmap bitmap0 = BitmapFactory.decodeByteArray(data, 0, data.length);
             Log.e("size","bitmap0---------width:"+bitmap0.getWidth()+"--height:"+bitmap0.getHeight());
             //将得到的照片进行270°旋转，使其竖直
@@ -227,25 +230,34 @@ Camera.Parameters para = myCamera.getParameters();
             Bitmap bitmap2 = rotateBitmap(bitmap, 270, true);
             Log.e("size","bitmap2---------width:"+bitmap2.getWidth()+"--height:"+bitmap2.getHeight());
             //创建并保存图片文件
-            File pictureFile = new File(getDir(), "camera.jpg");
+            File pictureFile = new File(getDir(), System.currentTimeMillis()+".jpg");
             try {
+                if(!pictureFile.exists()){
+                    pictureFile.createNewFile();
+                }
                 FileOutputStream fos = new FileOutputStream(pictureFile);
                 bitmap2.compress(Bitmap.CompressFormat.JPEG, 100, fos);
                 fos.close();
+                Log.d("Demo", "获取照片成功");
+                //Toast.makeText(CameraActivity.this, "获取照片成功", Toast.LENGTH_SHORT).show();;
+                Intent intent =new Intent();
+                intent.putExtra(PATH,pictureFile.getAbsolutePath());
+                CameraActivity.this.setResult(GET_SUCCESS,intent);
+                myCamera.stopPreview();
+                myCamera.release();
+                myCamera = null;
             } catch (Exception error) {
-                Toast.makeText(CameraActivity.this, "拍照失败", Toast.LENGTH_SHORT).show();;
+                //Toast.makeText(CameraActivity.this, "拍照失败", Toast.LENGTH_SHORT).show();;
                 Log.d("Demo", "保存照片失败" + error.toString());
                 error.printStackTrace();
                 myCamera.stopPreview();
                 myCamera.release();
                 myCamera = null;
+            }finally {
+                CameraActivity.this.finish();
             }
 
-            Log.d("Demo", "获取照片成功");
-            Toast.makeText(CameraActivity.this, "获取照片成功", Toast.LENGTH_SHORT).show();;
-            myCamera.stopPreview();
-            myCamera.release();
-            myCamera = null;
+
         }
     };
 
@@ -294,15 +306,23 @@ Camera.Parameters para = myCamera.getParameters();
     private File getDir()
     {
         //得到SD卡根目录
-        File dir = Environment.getExternalStorageDirectory();
-
-        if (dir.exists()) {
-            return dir;
+        File dir0 = new File(Environment.getExternalStorageDirectory(),"mapuu");
+        if(!dir0.exists()){
+            dir0.mkdirs();
         }
-        else {
+        File dir = new File(dir0,"ment");
+        if(!dir.exists()){
             dir.mkdirs();
-            return dir;
         }
+        File file = new File(dir,".nomedia");
+        if(!file.exists()){
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return dir;
     }
 }
 
