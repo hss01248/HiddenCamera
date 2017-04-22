@@ -1,13 +1,14 @@
 package com.hss01248.hidedemo;
 
 import android.Manifest;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
-import com.hss01248.hiddencamera.CameraActivity;
+import com.hss01248.hiddencamera.CameraUtil;
+import com.hss01248.hiddencamera.PhotoCallback;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import io.reactivex.functions.Consumer;
@@ -18,37 +19,46 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        findViewById(R.id.root).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(MainActivity.this,"hahahh",Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
 
         getPermission();
         findViewById(R.id.tv).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MainActivity.this.startActivity(new Intent(MainActivity.this, CameraActivity.class));
+                //MainActivity.this.startActivity(new Intent(MainActivity.this, CameraActivity.class));
+                CameraUtil.takePhotoQuitely(getApplicationContext(),false, 1500,2500,new PhotoCallback() {
+                    @Override
+                    public void onFail() {
+                        Log.e("onFail","onFail----------------");
+                    }
+
+                    @Override
+                    public void onSuccess(String path) {
+                        Log.e("onSuccess",path);
+                    }
+                });
             }
         });
     }
 
     private void getPermission() {
         new RxPermissions(this)
-                .request(Manifest.permission.CAMERA,Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .request(Manifest.permission.CAMERA,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.SYSTEM_ALERT_WINDOW)
                 .subscribe(new Consumer<Boolean>() {
                     @Override
                     public void accept(Boolean aBoolean) throws Exception {
-                        if(aBoolean){
-
-                        }
                     }
                 });
-
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode == CameraActivity.GET_SUCCESS && data !=null ){
-            String path = data.getStringExtra(CameraActivity.PATH);
-            Log.e("path","success path:"+path);
 
-        }
-    }
 }

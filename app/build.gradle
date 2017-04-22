@@ -27,8 +27,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.0.0'
     //compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
-    compile project(':hiddencamera')
     compile 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.4@aar'
-    //compile 'com.tbruyelle.rxpermissions:rxpermissions:0.9.4@aar'
     compile 'com.jakewharton.rxbinding2:rxbinding:2.0.0'
+    compile project(':hiddencamera')
 }

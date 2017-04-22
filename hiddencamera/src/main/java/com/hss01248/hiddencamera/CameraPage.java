@@ -1,20 +1,16 @@
 package com.hss01248.hiddencamera;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.hardware.Camera;
-import android.os.Bundle;
-import android.os.Environment;
-import android.util.Log;
+
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.Window;
-import android.view.WindowManager;
+import android.view.View;
+import android.view.ViewGroup;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -22,45 +18,63 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Created by Administrator on 2017/4/20.
- *
- * https://item.congci.com/-/content/android-camera-houtai-paizhao
+ * Created by Administrator on 2017/4/21.
  */
 
-public class CameraActivity extends Activity {
+public class CameraPage  {
+
+    public ViewGroup getRootView() {
+        return rootView;
+    }
+
+    private ViewGroup rootView;
 
     private SurfaceView mySurfaceView;
     private SurfaceHolder myHolder;
     private Camera myCamera;
     private int width;
     private int height;
+    private int prewidth;
+    private int preheight;
+    Context context;
+    PhotoCallback callback;
 
-    public static int GET_SUCCESS = 6;
-    public static String PATH = "path";
+    public void setIsdebug(boolean isdebug) {
+        this.isdebug = isdebug;
+    }
+
+    private boolean isdebug;
 
 
 
 
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
 
-        super.onCreate(savedInstanceState);
 
-        // 无title
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        // 全屏
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 
-        //设置布局
-        setContentView(R.layout.activity_camera);
 
-        Log.d("Demo", "oncreate");
 
-        //初始化surface
-        initSurface();
+    public CameraPage(Context context){
+        this.context = context;
+        initView();
+        //initData();
+       // begin();
+    }
+    int minWidth = 1000;
+    int maxWidth = 1500;
+    public void setWidthRange(int minWidth,int maxWidth){
+        if(minWidth>300 && maxWidth >300 && minWidth < maxWidth){
+            this.minWidth = minWidth;
+            this.maxWidth = maxWidth;
+        }
 
-        //这里得开线程进行拍照，因为Activity还未完全显示的时候，是无法进行拍照的，SurfaceView必须先显示
+    }
+
+    public void setCallback(PhotoCallback callback){
+        this.callback = callback;
+    }
+
+    public void begin() {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -69,38 +83,50 @@ public class CameraActivity extends Activity {
             }
         }).start();
 
+
     }
 
-    //初始化surface
-    @SuppressWarnings("deprecation")
-    private void initSurface()
-    {
+    private void initView() {
+        rootView = (ViewGroup) View.inflate(context,R.layout.activity_camera,null);
+
         //初始化surfaceview
-        mySurfaceView = (SurfaceView) findViewById(R.id.camera_surfaceview);
+        mySurfaceView = (SurfaceView)rootView. findViewById(R.id.camera_surfaceview);
 
         //初始化surfaceholder
         myHolder = mySurfaceView.getHolder();
         myHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-
     }
+
+
 
     //初始化摄像头
     private void initCamera() {
+       /* handleThread = new HandlerThread("dt");
+        handleThread.start();
+        detectHandler = new Handler(handleThread.getLooper());*/
+       // mySurfaceView.getHolder().addCallback(this);
+       // mySurfaceView.setKeepScreenOn(true);
+       /* facedetecter = new FaceDetecter();
+        facedetecter.init(context, Global.FACEPP_KEY);
+        facedetecter.setTrackingMode(true);*/
 
         //如果存在摄像头
-        if(checkCameraHardware(getApplicationContext()))
-        {
+        if(checkCameraHardware(context.getApplicationContext())) {
             //获取摄像头（首选前置，无前置选后置）
-            if(openFacingFrontCamera())
-            {
+            if(openFacingFrontCamera()) {
                 Log.d("Demo", "openCameraSuccess");
                 //进行对焦
                 autoFocus();
-            }
-            else {
+            }else {
                 Log.d("Demo", "openCameraFailed");
+                if(callback!=null){
+                    callback.onFail();
+                }
             }
-
+        }else {
+            if(callback!=null){
+                callback.onFail();
+            }
         }
     }
 
@@ -115,9 +141,20 @@ public class CameraActivity extends Activity {
         }
 
         //自动对焦
-        myCamera.autoFocus(myAutoFocus);
+        myCamera.autoFocus(new Camera.AutoFocusCallback() {
+            @Override
+            public void onAutoFocus(boolean success, Camera camera) {
+                if(success){
+                    //对焦后拍照
+                    myCamera.takePicture(null, null, myPicCallback);
+                }
+            }
+        });
 
-Camera.Parameters para = myCamera.getParameters();
+    }
+
+    private void setRightSizeOfPreviewAndTake() {
+        Camera.Parameters para = myCamera.getParameters();
         List<Camera.Size> list = para.getSupportedPictureSizes();
         Camera.Size sizePreview = list.get(list.size()/2);
         Camera.Size sizeTake = list.get(list.size()/2);
@@ -126,7 +163,7 @@ Camera.Parameters para = myCamera.getParameters();
             if(size.width>300 && size.width <700){
                 sizePreview = size;
             }
-            if(size.width>=1000 && size.width <1500){
+            if(size.width>=minWidth && size.width <maxWidth){
                 sizeTake = size;
             }
 
@@ -135,14 +172,12 @@ Camera.Parameters para = myCamera.getParameters();
         Log.e("preview size","width:"+sizePreview.width+"--height:"+sizePreview.height);
         Log.e("take size","width:"+sizeTake.width+"--height:"+sizeTake.height);
         para.setPreviewSize(sizePreview.width, sizePreview.height);
+        prewidth = sizePreview.width;
+        preheight = sizePreview.height;
         width = sizeTake.width;
         height = sizeTake.height;
         myCamera.setParameters(para);
-
-        //对焦后拍照
-        myCamera.takePicture(null, null, myPicCallback);
     }
-
 
 
     //判断是否存在摄像头
@@ -195,24 +230,23 @@ Camera.Parameters para = myCamera.getParameters();
         try {
             //这里的myCamera为已经初始化的Camera对象
             myCamera.setPreviewDisplay(myHolder);
+            myCamera.setDisplayOrientation(90);
         } catch (IOException e) {
             e.printStackTrace();
             myCamera.stopPreview();
             myCamera.release();
             myCamera = null;
         }
+        setRightSizeOfPreviewAndTake();
+        //myCamera.setPreviewCallback(this);
+
 
         myCamera.startPreview();
 
         return true;
     }
 
-    //自动对焦回调函数(空实现)
-    private Camera.AutoFocusCallback myAutoFocus = new Camera.AutoFocusCallback() {
-        @Override
-        public void onAutoFocus(boolean success, Camera camera) {
-        }
-    };
+
 
     //拍照成功回调函数
     private Camera.PictureCallback myPicCallback = new Camera.PictureCallback() {
@@ -230,31 +264,39 @@ Camera.Parameters para = myCamera.getParameters();
             Bitmap bitmap2 = rotateBitmap(bitmap, 270, true);
             Log.e("size","bitmap2---------width:"+bitmap2.getWidth()+"--height:"+bitmap2.getHeight());
             //创建并保存图片文件
-            File pictureFile = new File(getDir(), System.currentTimeMillis()+".jpg");
+            File pictureFile = new File(CameraUtil.getPhotoDir(context,isdebug), System.currentTimeMillis()+".jpg");
             try {
                 if(!pictureFile.exists()){
                     pictureFile.createNewFile();
                 }
                 FileOutputStream fos = new FileOutputStream(pictureFile);
-                bitmap2.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+               boolean success =  bitmap2.compress(Bitmap.CompressFormat.JPEG, 80, fos);
+                if(success){
+                    Log.d("Demo", "获取照片成功");
+                    if(callback!=null){
+                        callback.onSuccess(pictureFile.getAbsolutePath());
+                    }
+                }else {
+                    Log.d("Demo", "保存照片失败" );
+                    if(callback!=null){
+                        callback.onFail();
+                    }
+                }
+
+
                 fos.close();
-                Log.d("Demo", "获取照片成功");
-                //Toast.makeText(CameraActivity.this, "获取照片成功", Toast.LENGTH_SHORT).show();;
-                Intent intent =new Intent();
-                intent.putExtra(PATH,pictureFile.getAbsolutePath());
-                CameraActivity.this.setResult(GET_SUCCESS,intent);
-                myCamera.stopPreview();
-                myCamera.release();
-                myCamera = null;
             } catch (Exception error) {
                 //Toast.makeText(CameraActivity.this, "拍照失败", Toast.LENGTH_SHORT).show();;
                 Log.d("Demo", "保存照片失败" + error.toString());
                 error.printStackTrace();
+                if(callback!=null){
+                    callback.onFail();
+                }
+
+            }finally {
                 myCamera.stopPreview();
                 myCamera.release();
                 myCamera = null;
-            }finally {
-                CameraActivity.this.finish();
             }
 
 
@@ -302,27 +344,7 @@ Camera.Parameters para = myCamera.getParameters();
         return bm;
     }
 
-    //获取文件夹
-    private File getDir()
-    {
-        //得到SD卡根目录
-        File dir0 = new File(Environment.getExternalStorageDirectory(),"mapuu");
-        if(!dir0.exists()){
-            dir0.mkdirs();
-        }
-        File dir = new File(dir0,"ment");
-        if(!dir.exists()){
-            dir.mkdirs();
-        }
-        File file = new File(dir,".nomedia");
-        if(!file.exists()){
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return dir;
-    }
-}
 
+
+
+}
