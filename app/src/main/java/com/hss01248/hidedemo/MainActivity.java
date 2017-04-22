@@ -1,6 +1,7 @@
 package com.hss01248.hidedemo;
 
 import android.Manifest;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -9,6 +10,7 @@ import android.widget.Toast;
 
 import com.hss01248.hiddencamera.CameraUtil;
 import com.hss01248.hiddencamera.PhotoCallback;
+import com.hss01248.permission.FloatWindowManager;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import io.reactivex.functions.Consumer;
@@ -49,15 +51,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getPermission() {
-        new RxPermissions(this)
-                .request(Manifest.permission.CAMERA,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        Manifest.permission.SYSTEM_ALERT_WINDOW)
-                .subscribe(new Consumer<Boolean>() {
-                    @Override
-                    public void accept(Boolean aBoolean) throws Exception {
-                    }
-                });
+        if(Build.VERSION.SDK_INT < 23){
+            FloatWindowManager.getInstance().askPermission(this);
+        }else {
+            new RxPermissions(this)
+                    .request(Manifest.permission.CAMERA,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.SYSTEM_ALERT_WINDOW)
+                    .subscribe(new Consumer<Boolean>() {
+                        @Override
+                        public void accept(Boolean aBoolean) throws Exception {
+                            if(aBoolean){
+
+                            }
+                        }
+                    });
+        }
     }
 
 

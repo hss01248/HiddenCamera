@@ -14,6 +14,8 @@ import java.io.IOException;
 
 public class CameraUtil {
 
+
+
     /**
      *
      * @param context
@@ -46,7 +48,6 @@ public class CameraUtil {
                 callback.onSuccess(path);
                 if(dialog!=null && dialog.isShowing())
                 dialog.dismiss();
-
             }
         };
         page.setCallback(callback2);

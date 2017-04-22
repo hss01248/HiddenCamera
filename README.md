@@ -48,31 +48,48 @@ void onSuccess(String path);//拿到本次拍照所得的图片
 
 # 权限
 
-> manifest会自动合并,无需再添加,但6.0以上动态申请还是要的:
+> manifest会自动合并,无需再添加,但6.0以上动态申请还是要的.推荐选用RxPermission开源库
 
-> 注意小米6.0以下,Manifest.permission.SYSTEM_ALERT_WINDOW权限默认是关闭的.
+
+
+注意6.0以下各家rom对TYPE_TOAST 和Manifest.permission.SYSTEM_ALERT_WINDOW权限管理是不一样的,采用这个库来适配:
+
+https://github.com/hss01248/FloatWindowPermission
+
+那么,最终权限申请的代码如下:
 
 ```
-//推荐用RxPermissions:
-new RxPermissions(this)
+private void getPermission() {
+    if(Build.VERSION.SDK_INT < 23){
+        FloatWindowManager.getInstance().askPermission(this);
+    }else {
+        new RxPermissions(this)
                 .request(Manifest.permission.CAMERA,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
                         Manifest.permission.SYSTEM_ALERT_WINDOW)
                 .subscribe(new Consumer<Boolean>() {
                     @Override
                     public void accept(Boolean aBoolean) throws Exception {
+                        if(aBoolean){
+
+                        }
                     }
                 });
-                
-                
+    }
+}
+```
+
 //记得添加gradle:
+
+```
+compile 'com.github.hss01248:FloatWindowPermission:1.0.1'
 compile 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.4@aar'
 compile 'com.jakewharton.rxbinding2:rxbinding:2.0.0'
 ```
 
 ##  gradle 
 
-> no need to add permissions 
+
 
 **Step 1.** Add the JitPack repository to your build file
 
@@ -98,8 +115,4 @@ Add it in your root build.gradle at the end of repositories:
 lastest release:https://github.com/hss01248/HiddenCamera/releases
 
 
-
-# todo 
-
-结合 https://github.com/zhaozepeng/FloatWindowPermission 适配permission.SYSTEM_ALERT_WINDOW权限
 

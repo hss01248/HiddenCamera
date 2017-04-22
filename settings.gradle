@@ -1,1 +1,1 @@
-include ':app', ':hiddencamera', ':facedetect'
+include ':app', ':hiddencamera'
