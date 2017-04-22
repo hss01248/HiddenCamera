@@ -1,5 +1,5 @@
 # HiddenCamera
-use a transparent window(wrapped by dialog) whose type is TYPE_TOAST to take camera silently.
+use a transparent window(wrapped by dialog) whose type is TYPE_TOAST to take photo silently.
 
 # usage 
 
