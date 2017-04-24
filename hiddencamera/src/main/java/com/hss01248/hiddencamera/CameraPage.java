@@ -146,10 +146,12 @@ public class CameraPage  {
             public void onAutoFocus(boolean success, Camera camera) {
                 if(success){
                     //对焦后拍照
-                    myCamera.takePicture(null, null, myPicCallback);
+                    //myCamera.takePicture(null, null, myPicCallback);
                 }
             }
         });
+
+        myCamera.takePicture(null, null, myPicCallback);
 
     }
 
@@ -230,7 +232,7 @@ public class CameraPage  {
         try {
             //这里的myCamera为已经初始化的Camera对象
             myCamera.setPreviewDisplay(myHolder);
-            myCamera.setDisplayOrientation(90);
+           // myCamera.setDisplayOrientation(90);
         } catch (IOException e) {
             e.printStackTrace();
             myCamera.stopPreview();

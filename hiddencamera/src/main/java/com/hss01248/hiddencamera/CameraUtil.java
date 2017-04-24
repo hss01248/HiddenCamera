@@ -1,8 +1,8 @@
 package com.hss01248.hiddencamera;
 
-import android.app.Dialog;
 import android.content.Context;
 import android.os.Environment;
+import android.view.Gravity;
 import android.view.WindowManager;
 
 import java.io.File;
@@ -28,37 +28,49 @@ public class CameraUtil {
      * 内部默认值: minWidth=1000,maxWidth = 1500时,小米max拍得 768*1024的照片(1024为width),质量80%,保存得文件大小为50-70k
      */
     public static void takePhotoQuitely(Context context,boolean isdebug, int minWidth,int maxWidth,final PhotoCallback callback){
-        CameraPage page = new CameraPage(context);
+        final CameraPage page = new CameraPage(context);
         Log.setIsDebug(isdebug);
         page.setIsdebug(isdebug);
 
         page.setWidthRange(minWidth,maxWidth);
-        final Dialog dialog = new Dialog(context);
+
+        final WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        //final Dialog dialog = new Dialog(context);
 
         PhotoCallback callback2 = new PhotoCallback() {
             @Override
             public void onFail() {
                 callback.onFail();
-                if(dialog!=null && dialog.isShowing())
-                    dialog.dismiss();
+                /*if(dialog!=null && dialog.isShowing())
+                    dialog.dismiss();*/
+                windowManager.removeView(page.getRootView());
             }
 
             @Override
             public void onSuccess(String path) {
                 callback.onSuccess(path);
-                if(dialog!=null && dialog.isShowing())
-                dialog.dismiss();
+               /* if(dialog!=null && dialog.isShowing())
+                dialog.dismiss();*/
+                windowManager.removeView(page.getRootView());
             }
         };
         page.setCallback(callback2);
-      WindowManager.LayoutParams params =  dialog.getWindow().getAttributes();
+      WindowManager.LayoutParams params =  new WindowManager.LayoutParams();//dialog.getWindow().getAttributes();
         params.type = WindowManager.LayoutParams.TYPE_TOAST;
         params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 |WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                |WindowManager.LayoutParams.FLAG_DIM_BEHIND
                 |WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
-        dialog.getWindow().setAttributes(params);
+        params.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.gravity = Gravity.LEFT| Gravity.TOP;
+        params.dimAmount = 0;
+        /*dialog.getWindow().setAttributes(params);
+        dialog.getWindow().setDimAmount(0);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.setContentView(page.getRootView());
-        dialog.show();
+        dialog.show();*/
+        windowManager.addView(page.getRootView(),params);
         page.begin();
     }
 
